@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/httpclient"
 	"io"
 	"os"
 	"os/signal"
@@ -42,6 +43,16 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 			"parsed .http file",
 			"requests parsed from file",
 			len(httpFileParser.Requests))
+	}
+
+	httpClient := httpclient.NewHTTPClient(logger)
+	for _, r := range httpFileParser.Requests {
+		response, err := httpClient.Get(r)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(response.Status)
 	}
 
 	return nil
