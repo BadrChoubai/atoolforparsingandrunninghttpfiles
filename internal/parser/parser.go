@@ -24,7 +24,7 @@ type HttpFileParser struct {
 }
 
 // Parse scans a given `.http` file and appends valid results to `HttpFileParser.requests`
-// If the list of requests was built Parse returns `true`, otherwise `false` and a resulting error
+// If the list of requests was built, Parse returns `true`, otherwise `false` and a resulting error
 func (h *HttpFileParser) Parse(filepath string) (bool, error) {
 	file, err := os.Open(filepath)
 	defer func() {
