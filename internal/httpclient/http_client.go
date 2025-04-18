@@ -1,6 +1,7 @@
 package httpclient
 
 import (
+	"fmt"
 	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/logging"
 	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/parser"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 var _ HTTPClient = (*httpClient)(nil)
 
 type HTTPClient interface {
-	Get(request *parser.HTTPRequest) (resp *http.Response, err error)
+	DoRequest(request *parser.HTTPRequest) (response *http.Response, err error)
 }
 
 type httpClient struct {
@@ -27,8 +28,23 @@ func NewHTTPClient(logger *logging.Logger) HTTPClient {
 	}
 }
 
-func (h *httpClient) Get(request *parser.HTTPRequest) (resp *http.Response, err error) {
-	h.logger.Info(request.Method, "url", request.URL)
+func (h *httpClient) DoRequest(request *parser.HTTPRequest) (*http.Response, error) {
+	switch request.Method {
+	case http.MethodGet:
+		return h.get(request)
+	default:
+		return nil, fmt.Errorf("unsupported method %s", request.Method)
+	}
+}
 
-	return h.client.Get(request.URL)
+func (h *httpClient) get(request *parser.HTTPRequest) (*http.Response, error) {
+	resp, err := h.client.Get(request.URL)
+	if err != nil {
+		h.logger.Error(fmt.Sprintf("GET request failed: %v", err))
+		return nil, err
+	}
+
+	h.logger.Info(fmt.Sprintf("GET request succeeded with status: %s", resp.Status))
+	return resp, nil
+
 }
