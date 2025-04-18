@@ -3,11 +3,21 @@ package parser
 
 import (
 	"bufio"
+	"net/http"
 	"os"
 	"strings"
 )
 
 var _ Parser = (*HttpFileParser)(nil)
+
+var (
+	Methods = map[string]string{
+		"GET":    http.MethodGet,
+		"PUT":    http.MethodPut,
+		"POST":   http.MethodPost,
+		"DELETE": http.MethodDelete,
+	}
+)
 
 type Parser interface {
 	Parse(filepath string) (bool, error)
@@ -57,7 +67,7 @@ func (h *HttpFileParser) Parse(filepath string) (bool, error) {
 		if request != nil && request.Method == "" && request.URL == "" {
 			parts := strings.Fields(line)
 			if len(parts) >= 2 {
-				request.Method = parts[0]
+				request.Method = Methods[parts[0]]
 				request.URL = parts[1]
 			}
 		}
