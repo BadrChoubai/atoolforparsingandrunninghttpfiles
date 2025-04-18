@@ -26,33 +26,48 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 	var cfg config
 
 	flag.StringVar(&cfg.filename, "file", "", "http file")
-
 	flag.Parse()
+
+	if cfg.filename == "" {
+		return fmt.Errorf("no input file specified. Use --file to provide a .http file")
+	}
 
 	httpFileParser := &parser.HttpFileParser{}
 
-	logger.Info("parsing .http file")
+	logger.Info("parsing requests in file", "file", cfg.filename)
+
 	parsed, err := httpFileParser.Parse(filepath.Clean(cfg.filename))
 	if err != nil {
-		logger.Error("parsing http file", "error", err)
-		return err
+		return fmt.Errorf("failed to parse request file: %w", err)
+	}
+	if !parsed || len(httpFileParser.Requests) == 0 {
+		logger.Info("no valid HTTP requests found in file")
+		return nil
 	}
 
-	if parsed {
-		logger.Info(
-			"parsed .http file",
-			"requests parsed from file",
-			len(httpFileParser.Requests))
-	}
+	logger.Info(
+		"parsed .http file",
+		"requests parsed from file",
+		len(httpFileParser.Requests))
 
 	httpClient := httpclient.NewHTTPClient(logger)
 	for _, r := range httpFileParser.Requests {
-		response, err := httpClient.Get(r)
-		if err != nil {
+		logger.Info(
+			"sending request",
+			"method",
+			r.Method,
+			"url",
+			r.URL,
+		)
+		response, httpClientError := httpClient.DoRequest(r)
+		if httpClientError != nil {
+			logger.Error("trying request", "error", httpClientError.Error(), "method", r.Method, "url", r.URL)
 			return err
 		}
 
-		fmt.Println(response.Status)
+		logger.Info(
+			"response",
+			"status", response.Status)
 	}
 
 	return nil
