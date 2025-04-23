@@ -4,11 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/httpclient"
 	"io"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"time"
 
 	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/logging"
 	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/parser"
@@ -55,14 +56,16 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 		"requests parsed from file",
 		len(httpFileParser.Requests))
 
-	httpClient := httpclient.NewHTTPClient(logger)
+	httpClient := &http.Client{
+		Timeout: 5 * time.Second,
+	}
 	for _, r := range httpFileParser.Requests {
 		logger.Info(
 			"sending request",
 			"description",
 			r.Description,
 		)
-		response, httpClientError := httpClient.DoRequest(r)
+		response, httpClientError := httpClient.Do(r.Request)
 		if httpClientError != nil {
 			logger.Error("trying request", "error", httpClientError.Error(), "method", r.Method, "url", r.URL)
 			return err

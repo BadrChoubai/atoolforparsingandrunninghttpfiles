@@ -1,2 +1,10 @@
 ### GET request to /health
 GET http://localhost:8080/health
+
+### POST request to /todos
+POST http://localhost:8080/todos
+Content-Type: application/json
+
+{
+  "task": "learn go"
+}
