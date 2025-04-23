@@ -54,7 +54,7 @@ POST /users
 			}
 			tmpFile.Close()
 
-			parser := &HttpFileParser{}
+			parser := &HTTPFile{}
 			ok, err := parser.Parse(tmpFile.Name())
 			if err != nil {
 				t.Fatalf("Parse returned error: %v", err)
@@ -86,7 +86,7 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 					Description: "Get user",
 					Request: &http.Request{
 						Method: "GET",
-						URL:    &url.URL{Scheme: "http_file", Host: "example.com", Path: "/users/1"},
+						URL:    &url.URL{Scheme: "http", Host: "example.com", Path: "/users/1"},
 					},
 				},
 			},
@@ -102,14 +102,14 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 					Description: "List users",
 					Request: &http.Request{
 						Method: "GET",
-						URL:    &url.URL{Scheme: "http_file", Host: "example.com", Path: "/users"},
+						URL:    &url.URL{Scheme: "http", Host: "example.com", Path: "/users"},
 					},
 				},
 				{
 					Description: "Create user",
 					Request: &http.Request{
 						Method: "POST",
-						URL:    &url.URL{Scheme: "http_file", Host: "example.com", Path: "/users"},
+						URL:    &url.URL{Scheme: "http", Host: "example.com", Path: "/users"},
 						Header: map[string][]string{
 							"Content-Type": {"application/json"},
 						},
@@ -123,20 +123,20 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 			},
 		}} {
 		t.Run(tc.name, func(t *testing.T) {
-			parser := &HttpFileParser{
+			parser := &HTTPFile{
 				ScannedLines: tc.scannedLines,
 			}
 
-			err := parser.BuildRequests()
+			requests, err := parser.BuildRequests()
 			if err != nil {
 				t.Fatalf("BuildRequests() returned unexpected error: %v", err)
 			}
 
-			if len(parser.Requests) != len(tc.expected) {
+			if len(requests) != len(tc.expected) {
 				t.Fatalf("Expected %d requests, got %d", len(tc.expected), len(parser.Requests))
 			}
 
-			for i, req := range parser.Requests {
+			for i, req := range requests {
 				exp := tc.expected[i]
 				if req.Description != exp.Description {
 					t.Errorf("Request %d: expected description %q, got %q", i, exp.Description, req.Description)

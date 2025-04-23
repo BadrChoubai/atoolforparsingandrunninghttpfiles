@@ -24,7 +24,7 @@ type HTTPFile struct {
 
 type HTTPRequest struct {
 	Description string
-	*http.Request
+	Request     *http.Request
 }
 
 func NewHttpFileParser() *HTTPFile {
@@ -72,15 +72,15 @@ func (h *HTTPFile) Parse(filepath string) (bool, error) {
 	return len(h.ScannedLines) > 0, nil
 }
 
-func (h *HTTPFile) BuildRequests() error {
+func (h *HTTPFile) BuildRequests() ([]*HTTPRequest, error) {
 	for _, block := range h.ScannedLines {
 		req, err := parseRequestBlock(block)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		h.Requests = append(h.Requests, req)
 	}
-	return nil
+	return h.Requests, nil
 }
 
 func parseRequestBlock(lines []string) (*HTTPRequest, error) {
