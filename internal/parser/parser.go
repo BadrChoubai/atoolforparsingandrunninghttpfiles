@@ -3,7 +3,9 @@ package parser
 
 import (
 	"bufio"
+	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -75,4 +77,39 @@ func (h *HttpFileParser) Parse(filepath string) (bool, error) {
 	} else {
 		return false, err
 	}
+}
+
+func (h *HttpFileParser) BuildRequests() error {
+	for _, line := range h.ScannedLines {
+		if len(line) < 2 {
+			continue
+		}
+
+		desc := line[0]
+		line := strings.TrimSpace(line[1])
+		parts := strings.Fields(line)
+
+		if len(parts) < 2 {
+			return fmt.Errorf("malformed request line: %q", line)
+		}
+
+		method := parts[0]
+		rawURL := parts[1]
+		parsedURL, err := url.ParseRequestURI(rawURL)
+		if err != nil {
+			return fmt.Errorf("failed to parse UR: %q: %w", rawURL, err)
+		}
+
+		req := &http.Request{
+			Method: method,
+			URL:    parsedURL,
+		}
+
+		h.Requests = append(h.Requests, &HTTPRequest{
+			Description: desc,
+			Request:     req,
+		})
+	}
+
+	return nil
 }
