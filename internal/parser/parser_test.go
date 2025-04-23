@@ -1,9 +1,12 @@
 package parser
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -59,8 +62,9 @@ POST /users
 			if !ok && len(parser.ScannedLines) > 0 {
 				t.Errorf("Expected parse to succeed, got false")
 			}
+			fmt.Println(parser.ScannedLines, len(parser.ScannedLines))
 			if len(parser.ScannedLines) != tc.requestsParsedFromInput {
-				t.Fatalf("Expected %d requests, got %d", tc.requestsParsedFromInput, len(parser.Requests))
+				t.Fatalf("Expected %d requests, got %d", tc.requestsParsedFromInput, len(parser.ScannedLines))
 			}
 		})
 	}
@@ -91,7 +95,7 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 			name: "multiple requests",
 			scannedLines: [][]string{
 				{"List users", "GET http://example.com/users"},
-				{"Create user", "POST http://example.com/users", "Content-Type: application/json"},
+				{"Create user", "POST http://example.com/users", "Content-Type: application/json", "{ 'email': 'theodore.lasso@afcrichmond.com', 'password': 'uno1dos2tres34uatr0'"},
 			},
 			expected: []*HTTPRequest{
 				{
@@ -109,6 +113,11 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 						Header: map[string][]string{
 							"Content-Type": {"application/json"},
 						},
+						Body: io.NopCloser(strings.NewReader(`
+{
+	"email": "theodore.lasso@afcrichmond.com", 
+	"password": "uno1dos2tres34uatr0"
+}`)),
 					},
 				},
 			},
