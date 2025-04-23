@@ -25,12 +25,12 @@ type Parser interface {
 
 type HTTPRequest struct {
 	Description string
-	Method      string
-	URL         string
+	*http.Request
 }
 
 type HttpFileParser struct {
-	Requests []*HTTPRequest
+	Requests     []*HTTPRequest
+	ScannedLines [][]string
 }
 
 // Parse scans a given `.http` file and appends valid results to `HttpFileParser.requests`
@@ -46,44 +46,33 @@ func (h *HttpFileParser) Parse(filepath string) (bool, error) {
 		return false, err
 	}
 
-	var request *HTTPRequest
+	var scannedLine []string
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-
-		if description, found := strings.CutPrefix(line, "###"); found {
-			description = strings.TrimSpace(description)
-			if description != "" {
-				if request != nil {
-					h.Requests = append(h.Requests, request)
+		line := scanner.Text()
+		if line == "" {
+			continue
+		} else {
+			if prefix, reset := strings.CutPrefix(line, "###"); !reset {
+			} else {
+				if len(scannedLine) > 0 {
+					h.ScannedLines = append(h.ScannedLines, scannedLine)
 				}
-				request = &HTTPRequest{
-					Description: description,
-				}
+				scannedLine = []string{strings.TrimSpace(prefix)}
 				continue
 			}
-		}
-
-		if request != nil && request.Method == "" && request.URL == "" {
-			parts := strings.Fields(line)
-			if len(parts) >= 2 {
-				request.Method = Methods[parts[0]]
-				request.URL = parts[1]
-			}
+			scannedLine = append(scannedLine, strings.TrimSpace(line))
 		}
 	}
 
-	if request != nil {
-		h.Requests = append(h.Requests, request)
+	if len(scannedLine) > 0 {
+		h.ScannedLines = append(h.ScannedLines, scannedLine)
 	}
 
-	if len(h.Requests) > 0 {
+	if len(h.ScannedLines) > 0 {
 		return true, nil
 	} else {
 		return false, err
 	}
-}
-
-func (h *HttpFileParser) addRequest(request *HTTPRequest) {
-	h.Requests = append(h.Requests, request)
 }
