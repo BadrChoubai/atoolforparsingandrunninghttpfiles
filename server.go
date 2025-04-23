@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	http.HandleFunc("POST /todo", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("POST /todos", func(w http.ResponseWriter, r *http.Request) {
 		type Todo struct {
 			Task string `json:"task"`
 		}

@@ -40,9 +40,14 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("failed to parse request file: %w", err)
 	}
-	if !parsed || len(httpFileParser.Requests) == 0 {
-		logger.Info("no valid HTTP requests found in file")
+	if !parsed || len(httpFileParser.ScannedLines) == 0 {
 		return nil
+	}
+
+	err = httpFileParser.BuildRequests()
+	if err != nil {
+		logger.Error("failed to build requests", "err", err)
+		return fmt.Errorf("failed to build requests: %w", err)
 	}
 
 	logger.Info(
@@ -54,10 +59,8 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 	for _, r := range httpFileParser.Requests {
 		logger.Info(
 			"sending request",
-			"method",
-			r.Method,
-			"url",
-			r.URL,
+			"description",
+			r.Description,
 		)
 		response, httpClientError := httpClient.DoRequest(r)
 		if httpClientError != nil {

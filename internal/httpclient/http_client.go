@@ -38,7 +38,7 @@ func (h *httpClient) DoRequest(request *parser.HTTPRequest) (*http.Response, err
 }
 
 func (h *httpClient) get(request *parser.HTTPRequest) (*http.Response, error) {
-	resp, err := h.client.Get(request.URL)
+	resp, err := h.client.Get(request.URL.String())
 	if err != nil {
 		h.logger.Error(fmt.Sprintf("GET request failed: %v", err))
 		return nil, err
