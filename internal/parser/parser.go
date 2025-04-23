@@ -80,13 +80,13 @@ func (h *HttpFileParser) Parse(filepath string) (bool, error) {
 }
 
 func (h *HttpFileParser) BuildRequests() error {
-	for _, line := range h.ScannedLines {
-		if len(line) < 2 {
+	for _, lines := range h.ScannedLines {
+		if len(lines) < 2 {
 			continue
 		}
 
-		desc := line[0]
-		line := strings.TrimSpace(line[1])
+		desc := lines[0]
+		line := strings.TrimSpace(lines[1])
 		parts := strings.Fields(line)
 
 		if len(parts) < 2 {
@@ -103,6 +103,23 @@ func (h *HttpFileParser) BuildRequests() error {
 		req := &http.Request{
 			Method: method,
 			URL:    parsedURL,
+			Header: make(http.Header),
+		}
+
+		for _, headerLine := range lines[2:] {
+			headerLine = strings.TrimSpace(headerLine)
+			if headerLine == "" {
+				continue
+			}
+
+			kv := strings.SplitN(headerLine, ":", 2)
+			if len(kv) != 2 {
+				return fmt.Errorf("malformed header line: %q", headerLine)
+			}
+
+			key := strings.TrimSpace(kv[0])
+			value := strings.TrimSpace(kv[1])
+			req.Header.Add(key, value)
 		}
 
 		h.Requests = append(h.Requests, &HTTPRequest{

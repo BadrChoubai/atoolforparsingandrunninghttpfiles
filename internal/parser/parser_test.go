@@ -91,7 +91,7 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 			name: "multiple requests",
 			scannedLines: [][]string{
 				{"List users", "GET http://example.com/users"},
-				{"Create user", "POST http://example.com/users"},
+				{"Create user", "POST http://example.com/users", "Content-Type: application/json"},
 			},
 			expected: []*HTTPRequest{
 				{
@@ -106,6 +106,9 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 					Request: &http.Request{
 						Method: "POST",
 						URL:    &url.URL{Scheme: "http", Host: "example.com", Path: "/users"},
+						Header: map[string][]string{
+							"Content-Type": {"application/json"},
+						},
 					},
 				},
 			},
@@ -134,6 +137,23 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 				}
 				if req.Request.URL.String() != exp.Request.URL.String() {
 					t.Errorf("Request %d: expected URL %q, got %q", i, exp.Request.URL.String(), req.Request.URL.String())
+				}
+
+				for key, expectedValues := range exp.Request.Header {
+					actualValues, ok := req.Request.Header[key]
+					if !ok {
+						t.Errorf("Request %d: missing expected header %q", i, key)
+						continue
+					}
+					if len(actualValues) != len(expectedValues) {
+						t.Errorf("Request %d: header %q length mismatch: expected %d, got %d", i, key, len(expectedValues), len(actualValues))
+						continue
+					}
+					for j, expectedValue := range expectedValues {
+						if actualValues[j] != expectedValue {
+							t.Errorf("Request %d: header %q[%d] mismatch: expected %q, got %q", i, key, j, expectedValue, actualValues[j])
+						}
+					}
 				}
 			}
 		})
