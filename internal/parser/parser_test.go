@@ -43,7 +43,7 @@ POST /users
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			// Write content to a temporary file
-			tmpFile, err := os.CreateTemp("", "*.http")
+			tmpFile, err := os.CreateTemp("", "*.http_file")
 			if err != nil {
 				t.Fatalf("Failed to create temp file: %v", err)
 			}
@@ -86,7 +86,7 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 					Description: "Get user",
 					Request: &http.Request{
 						Method: "GET",
-						URL:    &url.URL{Scheme: "http", Host: "example.com", Path: "/users/1"},
+						URL:    &url.URL{Scheme: "http_file", Host: "example.com", Path: "/users/1"},
 					},
 				},
 			},
@@ -102,14 +102,14 @@ func TestHttpFileParser_BuildRequests(t *testing.T) {
 					Description: "List users",
 					Request: &http.Request{
 						Method: "GET",
-						URL:    &url.URL{Scheme: "http", Host: "example.com", Path: "/users"},
+						URL:    &url.URL{Scheme: "http_file", Host: "example.com", Path: "/users"},
 					},
 				},
 				{
 					Description: "Create user",
 					Request: &http.Request{
 						Method: "POST",
-						URL:    &url.URL{Scheme: "http", Host: "example.com", Path: "/users"},
+						URL:    &url.URL{Scheme: "http_file", Host: "example.com", Path: "/users"},
 						Header: map[string][]string{
 							"Content-Type": {"application/json"},
 						},

@@ -4,40 +4,35 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/logging"
+	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/parser"
 	"io"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"time"
-
-	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/logging"
-	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/parser"
 )
 
-type config struct {
+var (
 	filename string
-}
+)
 
 func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 	logger := logging.NewLogger(stdout, stderr)
 
-	var cfg config
-
-	flag.StringVar(&cfg.filename, "file", "", "http file")
+	flag.StringVar(&filename, "file", "", "http_file file")
 	flag.Parse()
 
-	if cfg.filename == "" {
-		return fmt.Errorf("no input file specified. Use --file to provide a .http file")
+	if filename == "" {
+		return fmt.Errorf("no input file specified. Use --file to provide a .http_file file")
 	}
 
-	httpFileParser := &parser.HttpFileParser{}
+	httpFileParser := parser.NewHttpFileParser()
 
-	logger.Info("parsing requests in file", "file", cfg.filename)
+	logger.Info("parsing requests in file", "file", filename)
 
-	parsed, err := httpFileParser.Parse(filepath.Clean(cfg.filename))
+	parsed, err := httpFileParser.Parse(filepath.Clean(filename))
 	if err != nil {
 		return fmt.Errorf("failed to parse request file: %w", err)
 	}
@@ -45,36 +40,10 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 		return nil
 	}
 
-	err = httpFileParser.BuildRequests()
-	if err != nil {
-		logger.Error("failed to build requests", "err", err)
-		return fmt.Errorf("failed to build requests: %w", err)
-	}
-
 	logger.Info(
-		"parsed .http file",
+		"parsed .http_file file",
 		"requests parsed from file",
-		len(httpFileParser.Requests))
-
-	httpClient := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-	for _, r := range httpFileParser.Requests {
-		logger.Info(
-			"sending request",
-			"description",
-			r.Description,
-		)
-		response, httpClientError := httpClient.Do(r.Request)
-		if httpClientError != nil {
-			logger.Error("trying request", "error", httpClientError.Error(), "method", r.Method, "url", r.URL)
-			return err
-		}
-
-		logger.Info(
-			"response",
-			"status", response.Status)
-	}
+		len(httpFileParser.ScannedLines))
 
 	return nil
 }

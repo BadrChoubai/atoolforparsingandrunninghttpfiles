@@ -1,4 +1,4 @@
-// Package parser contains code for parsing the `.http` file format
+// Package parser contains code for parsing the `.http_file` file format
 package parser
 
 import (
@@ -11,19 +11,15 @@ import (
 	"strings"
 )
 
-var _ Parser = (*HttpFileParser)(nil)
-
-var (
-	Methods = map[string]string{
-		"GET":    http.MethodGet,
-		"PUT":    http.MethodPut,
-		"POST":   http.MethodPost,
-		"DELETE": http.MethodDelete,
-	}
-)
+var _ Parser = (*HTTPFile)(nil)
 
 type Parser interface {
 	Parse(filepath string) (bool, error)
+}
+
+type HTTPFile struct {
+	Requests     []*HTTPRequest
+	ScannedLines [][]string
 }
 
 type HTTPRequest struct {
@@ -31,14 +27,13 @@ type HTTPRequest struct {
 	*http.Request
 }
 
-type HttpFileParser struct {
-	Requests     []*HTTPRequest
-	ScannedLines [][]string
+func NewHttpFileParser() *HTTPFile {
+	return &HTTPFile{}
 }
 
-// Parse scans a given `.http` file and appends valid results to `HttpFileParser.requests`
+// Parse scans a given `.http_file` file and appends valid results to `HttpFileParser.requests`
 // If the list of requests was built, Parse returns `true`, otherwise `false` and a resulting error
-func (h *HttpFileParser) Parse(filepath string) (bool, error) {
+func (h *HTTPFile) Parse(filepath string) (bool, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return false, err
@@ -77,7 +72,7 @@ func (h *HttpFileParser) Parse(filepath string) (bool, error) {
 	return len(h.ScannedLines) > 0, nil
 }
 
-func (h *HttpFileParser) BuildRequests() error {
+func (h *HTTPFile) BuildRequests() error {
 	for _, block := range h.ScannedLines {
 		req, err := parseRequestBlock(block)
 		if err != nil {
@@ -108,7 +103,7 @@ func parseRequestBlock(lines []string) (*HTTPRequest, error) {
 	}
 
 	req := &http.Request{
-		Method: Methods[method],
+		Method: method,
 		URL:    parsedURL,
 		Header: make(http.Header),
 	}
