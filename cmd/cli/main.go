@@ -45,9 +45,6 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 		"requests parsed from file",
 		len(httpFileParser.ScannedLines))
 
-	requests, err := httpFileParser.BuildRequests()
-	fmt.Println(requests[1].Request.URL.String())
-
 	return nil
 }
 
