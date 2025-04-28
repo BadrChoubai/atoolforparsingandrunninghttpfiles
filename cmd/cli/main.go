@@ -14,6 +14,7 @@ import (
 
 var (
 	filename string
+	curl     bool
 )
 
 func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -22,6 +23,7 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 	logger := logging.NewLogger(stdout, stderr)
 
 	flag.StringVar(&filename, "file", "", "http_file file")
+	flag.BoolVar(&curl, "curl", false, "--curl")
 	flag.Parse()
 
 	if filename == "" {
@@ -44,6 +46,34 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 		"parsed .http_file file",
 		"requests parsed from file",
 		len(httpFileParser.ScannedLines))
+
+	requests, err := httpFileParser.BuildRequests()
+
+	if curl {
+		file, errCreateFile := os.Create("generated_curl.sh")
+		if errCreateFile != nil {
+			logger.Error("Error creating file", "err", err)
+			return fmt.Errorf("error creating file: %w", err)
+		}
+		defer file.Close()
+
+		file.WriteString("#!/bin/bash\n")
+
+		for i, request := range requests {
+			c, err := request.ToCurl()
+			if err != nil {
+				return err
+			}
+
+			if i != 0 {
+				file.WriteString("\n")
+			}
+			file.WriteString(fmt.Sprintf("( # %s\n\t%s\n)\n", request.Description, c))
+		}
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

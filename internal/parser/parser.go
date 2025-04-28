@@ -3,12 +3,14 @@ package parser
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"text/template"
 )
 
 var _ Parser = (*HTTPFile)(nil)
@@ -25,6 +27,53 @@ type HTTPFile struct {
 type HTTPRequest struct {
 	Description string
 	Request     *http.Request
+}
+
+const CurlTemplate = `curl -X {{.Method}} '{{.URL}}' {{range .Header}} \
+    -H '{{.}}'{{end}}{{if .Body}} \
+    --data '{{.Body}}'{{end}}`
+
+type CurlView struct {
+	Method string
+	URL    string
+	Header []string
+	Body   string
+}
+
+func (h *HTTPRequest) ToCurl() (string, error) {
+	var headers []string
+	for k, vs := range h.Request.Header {
+		for _, v := range vs {
+			headers = append(headers, fmt.Sprintf("%s: %s", k, v))
+		}
+	}
+
+	var body string
+	if h.Request.Body != nil {
+		bs, err := io.ReadAll(h.Request.Body)
+		if err != nil {
+			return "", err
+		}
+		body = strings.ReplaceAll(string(bs), "'", "'\"\"'")
+		h.Request.Body = io.NopCloser(bytes.NewBuffer(bs))
+	}
+
+	view := &CurlView{
+		Method: h.Request.Method,
+		URL:    h.Request.URL.String(),
+		Header: headers,
+		Body:   body,
+	}
+	var buf bytes.Buffer
+	tmpl, err := template.New("curl").Parse(CurlTemplate)
+	if err != nil {
+		return "", err
+	}
+	if err := tmpl.Execute(&buf, view); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
 
 func NewHttpFileParser() *HTTPFile {
