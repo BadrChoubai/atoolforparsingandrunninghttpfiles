@@ -38,7 +38,7 @@ changelog:
       - "^test:"
 
 env_files:
-  github_token: ~/.env.release
+  github_token: ./.env.release
 
 release:
   footer: >-
