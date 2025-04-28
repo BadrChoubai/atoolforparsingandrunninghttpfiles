@@ -3,7 +3,7 @@
 `atfparhf` for short
 
 This is a command-line tool that can parse `.http` files and run the resulting collection
-of any requests found inside of them. 
+of any requests found inside them. 
 
 ## Why?
 
@@ -18,15 +18,13 @@ just makes sense to me.
 ### GET request to /health
 GET http://localhost:8080/health
 
-### POST request to /todo
-POST http://localhost:8080/todo
+### POST request to /todos
+POST http://localhost:8080/todos
 Content-Type: application/json
 
 {
-    "task": "build an abstraction of curl in go"
+  "task": "learn go"
 }
-
-###
 ```
 
 </details>

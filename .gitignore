@@ -12,4 +12,5 @@
 !Makefile
 
 # ...even if they are in subdirectories
-!*/
+!*/# Added by goreleaser init:
+dist/
