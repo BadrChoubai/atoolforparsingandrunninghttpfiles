@@ -11,9 +11,9 @@
 
 !Makefile
 
-# ...even if they are in subdirectories
-!*/
-
 # Added by goreleaser init:
 !.goreleaser.yaml
-!dist/
+
+
+# ...even if they are in subdirectories
+!*/
