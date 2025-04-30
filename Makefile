@@ -1,7 +1,7 @@
 # This is a file that should include a GITHUB_TOKEN variable for ensuring goreleaser
 # can successfully publish packages to the repo
 include .env.release
-BIN ?= cli
+BIN ?= atfparhf
 DIST ?= bin
 
 # VERSION: Application version
@@ -10,18 +10,22 @@ VERSION ?= $(shell git describe --tags --always --dirty)
 # Used internally.  Users should pass GOOS and/or GOARCH.
 # ARCH: Target architecture
 ARCH := $(if $(GOARCH),$(GOARCH),$(shell GOTOOLCHAIN=local go env GOARCH))
+
 # LDFLAGS: ldflags used by `go build` command
-LDFLAGS := -s -w -X 'main.Version=$(VERSION)'
+LDFLAGS := -s -w
+LDFLAGS += -X 'github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/vcs.Version=$(VERSION)'
+
 # OS: Target operating system
 OS := $(if $(GOOS),$(GOOS),$(shell GOTOOLCHAIN=local go env GOOS))
 
 all: build
 
 build: # @HELP build application locally
-build: help-build
+build:
+	@printf "building with ldflags: $(LDFLAGS)"
 	GO111MODULE=on CGO_ENABLED=0 go build \
 		-ldflags="$(LDFLAGS)" \
-		-o $(DIST)/$(BIN) ./cmd/$(BIN)
+		-o $(DIST)/$(BIN) main.go
 
 clean: # @HELP cleans build artifacts
 	rm -rf $(DIST)
@@ -51,10 +55,6 @@ help:
 		| awk '									\
 		BEGIN {FS = ": *# *@HELP"};				\
 		{ printf "	%-30s %s\n", $$1, $$2 }; '
-
-help-build:
-	@grep -hE '^# *[A-Z_]+: ' $(MAKEFILE_LIST) \
-	  | sed -E 's/^# *([A-Z_]+): (.*)/ \t\1: \2/'
 
 SHELL := /usr/bin/env bash -o errexit -o pipefail -o nounset
 .DEFAULT_GOAL = all

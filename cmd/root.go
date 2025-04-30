@@ -1,0 +1,20 @@
+package cmd
+
+import (
+	"context"
+	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/vcs"
+	"github.com/spf13/cobra"
+)
+
+func NewRootCmd(ctx context.Context) *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:     "atfparhf",
+		Version: vcs.Version,
+		Short:   "A tool for parsing and running http files",
+	}
+
+	rootCmd.AddCommand(newRunCmd(ctx))
+	rootCmd.AddCommand(newVersionCmd())
+
+	return rootCmd
+}
