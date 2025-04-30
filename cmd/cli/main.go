@@ -4,12 +4,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/logging"
-	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/parser"
 	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
+
+	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/logging"
+	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/parser"
 )
 
 var (
@@ -77,7 +78,7 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 			if i != 0 {
 				file.WriteString("\n")
 			}
-			file.WriteString(fmt.Sprintf("( # %s\n\t%s\n)\n", request.Description, c))
+			fmt.Fprintf(file, "( # %s\n\t%s\n)\n", request.Description, c)
 		}
 		if err != nil {
 			return err
