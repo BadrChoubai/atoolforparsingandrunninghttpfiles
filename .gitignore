@@ -11,8 +11,8 @@
 
 !Makefile
 
+# Added by goreleaser init:
 !.goreleaser.yaml
-!.golangci.yml
 
 
 # ...even if they are in subdirectories
