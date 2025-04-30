@@ -3,12 +3,11 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/cobra"
 	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
-
-	"github.com/spf13/cobra"
 
 	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/parser"
 )

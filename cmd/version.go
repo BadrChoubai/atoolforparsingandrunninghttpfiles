@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/vcs"
-
 	"github.com/spf13/cobra"
+
+	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/vcs"
 )
 
 func newVersionCmd() *cobra.Command {

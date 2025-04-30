@@ -7,7 +7,7 @@ before:
 builds:
   - id: cli
     binary: cli
-    main: ./cmd/cli
+    main: main.go
     env:
       - CGO_ENABLED=0
     goos:

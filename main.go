@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/cmd"
 	"os"
+
+	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/cmd"
 )
 
 func main() {

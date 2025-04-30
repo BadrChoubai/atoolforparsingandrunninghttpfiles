@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"context"
-	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/vcs"
 	"github.com/spf13/cobra"
+
+	"github.com/badrchoubai/atoolforparsingandrunninghttpfiles/internal/vcs"
 )
 
 func NewRootCmd(ctx context.Context) *cobra.Command {
