@@ -4,18 +4,21 @@ include .env.release
 BIN ?= cli
 DIST ?= bin
 
+# VERSION: Application version
 VERSION ?= $(shell git describe --tags --always --dirty)
+
 # Used internally.  Users should pass GOOS and/or GOARCH.
-OS := $(if $(GOOS),$(GOOS),$(shell GOTOOLCHAIN=local go env GOOS))
+# ARCH: Target architecture
 ARCH := $(if $(GOARCH),$(GOARCH),$(shell GOTOOLCHAIN=local go env GOARCH))
-LDFLAGS := -s -w -X 'main.version=$(VERSION)'
+# LDFLAGS: ldflags used by `go build` command
+LDFLAGS := -s -w -X 'main.Version=$(VERSION)'
+# OS: Target operating system
+OS := $(if $(GOOS),$(GOOS),$(shell GOTOOLCHAIN=local go env GOOS))
 
 all: build
 
 build: # @HELP build application locally
-	@echo "building application"
-	@printf "application:\t$(BIN)\n"
-	@printf	"version:\t$(VERSION)\n"
+build: help-build
 	GO111MODULE=on CGO_ENABLED=0 go build \
 		-ldflags="$(LDFLAGS)" \
 		-o $(DIST)/$(BIN) ./cmd/$(BIN)
@@ -28,12 +31,10 @@ clean: # @HELP cleans build artifacts
 
 TAG := $(VERSION)__$(OS)_$(ARCH)
 release: # @HELP creates new release for TAG
-	@echo "release $(TAG)"
 	GITHUB_TOKEN=$(GITHUB_TOKEN) VERSION=$(VERSION) \
 		goreleaser release
 
 snapshot: # @HELP do dry run of goreleaser
-	@echo "release snapshot $(TAG)"
 	GITHUB_TOKEN="$(GITHUB_TOKEN)" VERSION=$(VERSION) \
 		goreleaser release --snapshot --clean
 
@@ -41,15 +42,17 @@ test:
 	go test ./...
 
 version: # @HELP outputs the version string
-	@echo $(VERSION)
+	@printf $(VERSION)
 
 help:
-	@printf "\nTARGETS\n"
 	@grep -hE '^.*: *# *@HELP' $(MAKEFILE_LIST) \
 		| awk '									\
 		BEGIN {FS = ": *# *@HELP"};				\
-		{ printf "	%-30s %s\n", $$1, $$2 };	\
-		'
+		{ printf "	%-30s %s\n", $$1, $$2 }; '
+
+help-build:
+	@grep -hE '^# *[A-Z_]+: ' $(MAKEFILE_LIST) \
+	  | sed -E 's/^# *([A-Z_]+): (.*)/ \t\1: \2/'
 
 SHELL := /usr/bin/env bash -o errexit -o pipefail -o nounset
 .DEFAULT_GOAL = all

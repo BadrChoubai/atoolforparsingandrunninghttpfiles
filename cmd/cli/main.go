@@ -15,6 +15,7 @@ import (
 var (
 	filename string
 	curl     bool
+	Version  = "DEV"
 )
 
 func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -24,7 +25,15 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 
 	flag.StringVar(&filename, "file", "", "http_file file")
 	flag.BoolVar(&curl, "curl", false, "--curl")
+
+	displayVersion := flag.Bool("version", false, "display version")
+
 	flag.Parse()
+
+	if *displayVersion {
+		fmt.Fprintln(stdout, "Version:", Version)
+		return nil
+	}
 
 	if filename == "" {
 		return fmt.Errorf("no input file specified. Use --file to provide a .http_file file")
@@ -73,6 +82,8 @@ func run(ctx context.Context, stdin io.Reader, stdout, stderr io.Writer) error {
 		if err != nil {
 			return err
 		}
+
+		return nil
 	}
 
 	return nil
